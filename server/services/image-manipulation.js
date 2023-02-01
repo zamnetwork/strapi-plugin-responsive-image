@@ -3,7 +3,7 @@
  * Image manipulation functions
  */
 const fs = require("fs");
-const { join } = require("path");
+const { join, parse } = require("path");
 const sharp = require("sharp");
 
 const { bytesToKbytes } = require("@strapi/plugin-upload/server/utils/file");
@@ -27,13 +27,19 @@ const getMetadata = (file) =>
     file.getStream().pipe(pipeline);
   });
 
+const THUMBNAIL_RESIZE_OPTIONS = {
+  width: 245,
+  height: 156,
+  fit: 'inside',
+};
+
 const resizeFileTo = async (
   file,
   options,
   quality,
   progressive,
   autoOrientation,
-  { name, hash, ext }
+  { hash, ext }
 ) => {
   const filePath = join(file.tmpWorkingDirectory, hash);
 
@@ -59,7 +65,6 @@ const resizeFileTo = async (
     filePath
   );
   const newFile = {
-    name,
     hash,
     ext,
     mime: file.mime,
@@ -71,6 +76,28 @@ const resizeFileTo = async (
 
   Object.assign(newFile, { width, height, size: bytesToKbytes(size) });
   return newFile;
+};
+
+const generateThumbnail = async (file) => {
+  if (
+    file.width > THUMBNAIL_RESIZE_OPTIONS.width ||
+    file.height > THUMBNAIL_RESIZE_OPTIONS.height
+  ) {
+    const quality = 87;
+    const progressive = true;
+    const autoOrientation = false;
+    const parsed = parse(file.name);
+    const newFile = await resizeFileTo(file, THUMBNAIL_RESIZE_OPTIONS,
+      quality, progressive, autoOrientation, {
+      hash: `thumbnail_${file.hash}`,
+    });
+    const { name, ext } = parsed;
+    newFile.name = `${name}-${newFile.width}x${newFile.height}${ext}`;
+    newFile.ext = ext;
+    return newFile;
+  }
+
+  return null;
 };
 
 const generateResponsiveFormats = async (file) => {
@@ -137,11 +164,13 @@ const generateBreakpoint = async (
     progressive,
     autoOrientation,
     {
-      name: `${key}_${file.name}`,
       hash: `${key}_${file.hash}`,
       ext: getFileExtension(file, format),
     }
   );
+  const parsed = parse(file.name);
+  const { name, ext } = parsed;
+  newFile.name = `${name}-${newFile.width}x${newFile.height}${ext}`;
   return {
     key,
     file: newFile,
@@ -150,5 +179,6 @@ const generateBreakpoint = async (
 
 module.exports = () => ({
   ...imageManipulation(),
+  generateThumbnail,
   generateResponsiveFormats,
 });

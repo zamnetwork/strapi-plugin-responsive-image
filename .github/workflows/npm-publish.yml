@@ -1,0 +1,39 @@
+name: Publish to private npm repo
+
+on:
+  push:
+    tags: [ v* ]
+
+jobs:
+
+  publish:
+
+    runs-on: [self-hosted, nodejs16x]
+
+    steps:
+    - run: |
+          echo "SLACK_WEBHOOK_URL=$(cat /vault/secrets/slack)" >> $GITHUB_ENV
+    - uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        fields: repo,message,commit,author,ref,job,took
+      env:
+        SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
+      if: always()
+
+    - name: Cleanup sonar qube workspace
+      run: |
+          sudo rm -rf /work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/.scannerwork
+
+    - name: Check out this repo
+      uses: actions/checkout@v2
+
+    - name: Set env
+      run: |
+          echo "GITHUB_PAT_CHECKOUT=$(cat /vault/secrets/github)" >> $GITHUB_ENV
+          echo "GITHUB_SOURCE_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV 
+          echo "GITHUB_SOURCE_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "GITHUB_SOURCE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+    - name: Publish package
+      run: npm publish
