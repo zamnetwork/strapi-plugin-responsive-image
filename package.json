@@ -1,6 +1,6 @@
 {
   "name": "@zam/strapi-plugin-responsive-image",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Custom responsive image formats for strapi.",
   "strapi": {
     "name": "responsive-image",
@@ -12,7 +12,12 @@
   "publishConfig": {
     "registry": "https://npm.k8s.zam.com/"
   },
-  "dependencies": {},
+  "bin": {
+    "images": "bin/images"
+  },
+  "dependencies": {
+    "commander": "^10.0.1"
+  },
   "peerDependencies": {
     "@strapi/strapi": "^4.6.1"
   },
