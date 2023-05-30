@@ -1,6 +1,6 @@
 const path = require('path');
 const Strapi = require('@strapi/strapi');
-const regenerate = require('./regenerate');
+const generate = require('./generate');
 const { version } = require('../package.json');
 const { Command, Option } = require('commander');
 
@@ -15,12 +15,12 @@ const { Command, Option } = require('commander');
     .description('CLI to work images in strapi.')
     .version(version);
 
-  program.command('regenerate')
-    .description('Regenerate responsive images in Strapi')
+  program.command('generate')
+    .description('Generate responsive images in Strapi')
     .addOption(new Option('-a, --all', 'Regenerate all images'))
     .addOption(new Option('-i, --ids <number...>', 'Image id(s)'))
     .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
-    .action(regenerate)
+    .action(generate)
 
   await program.parseAsync();
   strapi.stop(0);
