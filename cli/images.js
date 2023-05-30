@@ -1,6 +1,7 @@
 const path = require('path');
-const Strapi = require('@strapi/strapi');
+const enqueue = require('./enqueue');
 const generate = require('./generate');
+const Strapi = require('@strapi/strapi');
 const { version } = require('../package.json');
 const { Command, Option } = require('commander');
 
@@ -21,6 +22,13 @@ const { Command, Option } = require('commander');
     .addOption(new Option('-i, --ids <number...>', 'Image id(s)'))
     .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
     .action(generate)
+
+  program.command('enqueue')
+    .description('Enqueue images to be resized')
+    .addOption(new Option('-a, --all', 'Regenerate all images'))
+    .addOption(new Option('-i, --ids <number...>', 'Image id(s)'))
+    .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
+    .action(enqueue)
 
   await program.parseAsync();
   strapi.stop(0);
