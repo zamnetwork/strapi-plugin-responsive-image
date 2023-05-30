@@ -93,10 +93,8 @@ module.exports = async function () {
   if (all) {
     console.log('Getting all Image ids');
     const select = '*';
-    const limit = 1;
     const entities = await strapi.db.query('plugin::upload.file').findMany({
-      select,
-      limit
+      select
     });
     for (let x = 0; x < entities.length; x += 1) {
       console.log(`Processing ${x + 1} of ${entities.length}`);
