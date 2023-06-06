@@ -18,16 +18,17 @@ const { Command, Option } = require('commander');
 
   program.command('generate')
     .description('Generate responsive images in Strapi')
-    .addOption(new Option('-a, --all', 'Regenerate all images'))
+    .addOption(new Option('-a, --all', 'Generate all images'))
     .addOption(new Option('-i, --ids <number...>', 'Image id(s)'))
     .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
     .action(generate)
 
   program.command('enqueue')
     .description('Enqueue images to be resized')
-    .addOption(new Option('-a, --all', 'Regenerate all images'))
+    .addOption(new Option('-a, --all', 'Enqueue all images to be resized'))
     .addOption(new Option('-i, --ids <number...>', 'Image id(s)'))
     .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
+    .addOption(new Option('-c, --cleanup', 'Enqueue images to be resized which do not have the strapi formats'))
     .action(enqueue)
 
   await program.parseAsync();

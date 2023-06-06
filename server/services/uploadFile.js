@@ -12,6 +12,35 @@ module.exports = (
       });
       return entities;
     },
+    async getCleanup() {
+      const { formats } = await strapi.plugin('responsive-image').service('responsive-image').getSettings();
+      const formatNames = [];
+      formats.forEach(format => formatNames.push(format.name));
+      if (!formatNames.includes('thumbnail')) formatNames.push('thumbnail');
+      const select = ['id', 'formats'];
+      const allEntities = await this.getAll(select);
+      const entities = [];
+      for (let x = 0; x < allEntities.length; x += 1) {
+        const entity = allEntities[x];
+        let add = false;
+        const { id, formats: entityFormats } = entity;
+        const entityFormatNames = Object.keys(entityFormats);
+        for (let y = 0; y < formatNames.length; y += 1) {
+          const name = formatNames[y];
+          if (!entityFormatNames.includes(name)) {
+            add = true;
+            break;
+          }
+        };
+        if (add) {
+          entities.push(id);
+          continue;
+        } else if (formatNames.length != entityFormatNames.length) {
+          entities.push(id);
+        }
+      };
+      return entities;
+    },
     async getFromFile(filepath, select = '*') {
       console.log(`Getting Images for ids in ${filepath}`);
       const $in = require(filepath);
