@@ -115,9 +115,9 @@ module.exports = (
           throw new Error(e);
         });
     },
-    async generateFromId(id) {
-      const entity = await strapi.db.query('plugin::upload.file').findOne(id, {
-        select: '*'
+    async generateFromId({ id }) {
+      const entity = await strapi.plugin('upload').service('upload').findOne(id, {
+        populate: '*'
       });
       const { url, name, ext, hash, mime, formats } = entity;
       await this.generate(id, url, name, ext, hash, mime, formats);

@@ -23,5 +23,10 @@ module.exports = async function () {
   } else {
     entities = ids;
   }
-  await strapi.plugin('wp-migrate').service('sqs').enqueueIds(entities, 'responsive-image');
+  const plugin = 'responsive-image';
+  const service = 'generate';
+  const func = 'generateFromId';
+  const data = [];
+  entities.forEach(id => data.push({ id }));
+  await strapi.plugin('sqs').service('sqs').enqueue(data, plugin, service, func);
 }
