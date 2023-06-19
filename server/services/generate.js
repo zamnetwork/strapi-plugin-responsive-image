@@ -83,6 +83,26 @@ async function generateResponsiveFormats(tmpWorkingDirectory, name, ext, hash, m
   return files;
 }
 
+async function generateThumbnail(tmpWorkingDirectory, name, ext, hash, mime, width, height) {
+  console.log('Generating the thumbnail');
+  const file = {
+    name,
+    hash,
+    ext,
+    mime,
+    width,
+    height,
+    tmpWorkingDirectory,
+    getStream: () => createReadStream(`${tmpWorkingDirectory}/${name}`)
+  }
+  const thumbnail = await strapi.plugin('upload').service('image-manipulation').generateThumbnail(file)
+    .catch(e => {
+      console.log('Failed to generate responsive formats')
+      console.error(e)
+    });
+  return thumbnail;
+}
+
 module.exports = (
   {
     strapi
@@ -115,12 +135,42 @@ module.exports = (
           throw new Error(e);
         });
     },
+    async thumbnail(id, url, name, ext, hash, mime, formats, width, height) {
+      const randomSuffix = crypto.randomBytes(5).toString('hex');
+      const tmpWorkingDirectory = await fse.mkdtemp(join(os.tmpdir(), randomSuffix));
+      const tmpFilepath = `${tmpWorkingDirectory}/${name}`;
+      await download(url, tmpFilepath);
+      const file = await generateThumbnail(tmpWorkingDirectory, name, ext, hash, mime, width, height);
+      if (file) {
+        await uploadResponsiveFormats([{file}], url, tmpWorkingDirectory);
+        formats['thumbnail'] = file;
+        await strapi.plugin('upload').service('upload').update(id, {
+          formats
+        })
+          .catch(e => {
+            console.log('Failed to update image in db');
+            console.error(e);
+            throw new Error(e);
+          });
+      }
+    },
     async generateFromId({ id }) {
       const entity = await strapi.plugin('upload').service('upload').findOne(id, {
         populate: '*'
       });
       const { url, name, ext, hash, mime, formats } = entity;
-      await this.generate(id, url, name, ext, hash, mime, formats);
+      const unsupported = ['.mp4', '.bmp', '.heic', '.webm'];
+      if (unsupported.includes(ext)) console.log(`Unsupported format ${ext}, ${url}`);
+      else await this.generate(id, url, name, ext, hash, mime, formats);
+    },
+    async generateThumbnailFromId({ id }) {
+      const entity = await strapi.plugin('upload').service('upload').findOne(id, {
+        populate: '*'
+      });
+      const { url, name, ext, hash, mime, formats, width, height } = entity;
+      const unsupported = ['.mp4', '.bmp', '.heic', '.webm'];
+      if (unsupported.includes(ext)) console.log(`Unsupported format ${ext}, ${url}`);
+      else await this.thumbnail(id, url, name, ext, hash, mime, formats, width, height);
     }
   };
 };

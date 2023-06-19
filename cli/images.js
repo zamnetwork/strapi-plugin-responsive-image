@@ -1,6 +1,8 @@
 const path = require('path');
 const enqueue = require('./enqueue');
+const enqueueThumbnail = require('./enqueueThumbnail');
 const generate = require('./generate');
+const generateThumbnail = require('./generateThumbnail');
 const Strapi = require('@strapi/strapi');
 const { version } = require('../package.json');
 const { Command, Option } = require('commander');
@@ -23,6 +25,13 @@ const { Command, Option } = require('commander');
     .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
     .action(generate)
 
+  program.command('generate-thumbnail')
+    .description('Generate thumbnail for images in Strapi')
+    .addOption(new Option('-a, --all', 'Generate all images'))
+    .addOption(new Option('-i, --ids <number...>', 'Image id(s)'))
+    .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
+    .action(generateThumbnail)
+
   program.command('enqueue')
     .description('Enqueue images to be resized')
     .addOption(new Option('-a, --all', 'Enqueue all images to be resized'))
@@ -30,6 +39,14 @@ const { Command, Option } = require('commander');
     .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
     .addOption(new Option('-c, --cleanup', 'Enqueue images to be resized which do not have the strapi formats'))
     .action(enqueue)
+
+  program.command('enqueue-thumbnail')
+    .description('Enqueue images to be resized')
+    .addOption(new Option('-a, --all', 'Enqueue all images to be resized'))
+    .addOption(new Option('-i, --ids <number...>', 'Image id(s)'))
+    .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
+    .addOption(new Option('-c, --cleanup', 'Enqueue images to be resized which do not have the strapi formats'))
+    .action(enqueueThumbnail)
 
   await program.parseAsync();
   strapi.stop(0);
