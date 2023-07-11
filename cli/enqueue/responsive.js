@@ -27,7 +27,6 @@ module.exports = async function () {
   const service = 'generate';
   const func = 'generateFromId';
   const data = [];
-  console.log(entities);
   entities.forEach(id => data.push({ id }));
   await strapi.plugin('sqs').service('sqs').enqueue(data, plugin, service, func);
 }

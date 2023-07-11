@@ -25,7 +25,6 @@ module.exports = async function () {
   const service = 'cdn';
   const func = 'set';
   const data = [];
-  console.log(entities);
   entities.forEach(id => data.push({ id, url }));
   await strapi.plugin('sqs').service('sqs').enqueue(data, plugin, service, func);
 }
