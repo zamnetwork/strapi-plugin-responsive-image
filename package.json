@@ -1,6 +1,6 @@
 {
   "name": "@zam/strapi-plugin-responsive-image",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Custom responsive image formats for strapi.",
   "strapi": {
     "name": "responsive-image",
@@ -13,7 +13,10 @@
     "registry": "https://npm.k8s.zam.com/"
   },
   "bin": {
-    "images": "bin/images"
+    "images": "bin/images",
+    "images-generate": "bin/images-generate",
+    "images-enqueue": "bin/images-enqueue",
+    "images-cdn": "bin/images-cdn"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.341.0",

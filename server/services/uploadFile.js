@@ -12,6 +12,14 @@ module.exports = (
       });
       return entities;
     },
+    async getOne(id, select = '*') {
+      console.log('Getting image by id');
+      const entity = await strapi.db.query('plugin::upload.file').findOne({
+        select,
+        where: { id }
+      });
+      return entity;
+    },
     async getCleanup() {
       const { formats } = await strapi.plugin('responsive-image').service('responsive-image').getSettings();
       const formatNames = [];
