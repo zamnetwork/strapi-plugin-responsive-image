@@ -21,13 +21,6 @@ module.exports = async function () {
   } else {
     entities = ids;
   }
-  // const plugin = 'responsive-image';
-  // const service = 'generate';
-  // const func = 'generateFromId';
-  // const data = [];
-  // console.log(entities);
-  // entities.forEach(id => data.push({ id }));
-  // await strapi.plugin('sqs').service('sqs').enqueue(data, plugin, service, func);
   for (let x = 0; x < entities.length; x += 1) {
     console.log(`Processing ${x + 1} of ${entities.length}`);
     const id = entities[x];
