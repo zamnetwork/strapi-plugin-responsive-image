@@ -12,11 +12,11 @@ module.exports = (
       });
       return entities;
     },
-    async getOne(id, select = '*') {
+    async getOne(where, select = '*') {
       console.log('Getting image by id');
       const entity = await strapi.db.query('plugin::upload.file').findOne({
         select,
-        where: { id }
+        where
       });
       return entity;
     },

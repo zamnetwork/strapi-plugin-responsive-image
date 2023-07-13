@@ -2,7 +2,7 @@ const path = require('path');
 
 const Strapi = require('@strapi/strapi');
 const { version } = require('../package.json');
-const { responsive, thumbnail, setCdn } = require('./enqueue');
+const { responsive, thumbnail, setCdn, setCdnEmbedded } = require('./enqueue');
 const { Command, Option } = require('commander');
 
 (async () => {
@@ -39,6 +39,14 @@ const { Command, Option } = require('commander');
     .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
     .addOption(new Option('-u, --url <string>', 'Url to set').default(url))
     .action(setCdn)
+
+  program.command('set-embedded')
+    .description('Enqueue setting the CDN url for images embeded in post content')
+    .addOption(new Option('-a, --all', 'Set for all posts'))
+    .addOption(new Option('-i, --ids <number...>', 'Post id(s)'))
+    .addOption(new Option('-f, --filepath <string>', 'Filepath of JSON containing Ids'))
+    .addOption(new Option('-u, --url <string>', 'Url to set').default(url))
+    .action(setCdnEmbedded)
 
   await program.parseAsync();
   strapi.stop(0);
