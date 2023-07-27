@@ -1,4 +1,5 @@
 'use strict';
+const { getNewUrl } = require('./utils');
 /**
  * Upload plugin bootstrap.
  *
@@ -54,4 +55,21 @@ module.exports = async (
       },
     });
   }
+
+  strapi.db.lifecycles.subscribe({
+    models: ['plugin::upload.file'],
+    // use cdn url instead of origin
+    async beforeCreate(data) {
+      const { cdn: { url } } = strapi.config.get('plugin.upload');
+      const { params: { data: { url: oldUrl, formats }}} = data;
+      data.params.data.url = getNewUrl(oldUrl, url);
+      if (formats) {
+        Object.keys(formats).forEach(format => {
+          const { url: oldUrl } = formats[format];
+          formats[format]['url'] = getNewUrl(oldUrl, url);
+        });
+        data.params.data.formats = formats;
+      }
+    },
+  });
 };

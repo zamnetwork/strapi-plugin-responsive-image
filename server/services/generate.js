@@ -1,13 +1,16 @@
 'use strict';
 const os = require('os');
+const jsdom = require('jsdom');
 const axios = require('axios');
 const fse = require('fs-extra');
 const crypto = require('crypto');
 const stream = require('stream');
 const { promisify } = require('util');
-const { parse, dirname, join, format } = require('path');
+const { parse, dirname, basename, join, format } = require('path');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { rmSync, readFileSync, createReadStream, createWriteStream } = require('fs');
+const { getNewUrl } = require('../utils');
+const { JSDOM } = jsdom;
 
 async function download(url, filepath) {
   console.log(`Downloading image from ${url} to ${filepath}`);
@@ -171,6 +174,61 @@ module.exports = (
       const unsupported = ['.mp4', '.bmp', '.heic', '.webm'];
       if (unsupported.includes(ext)) console.log(`Unsupported format ${ext}, ${url}`);
       else await this.thumbnail(id, url, name, ext, hash, mime, formats, width, height);
+    },
+    async imgAttrSrcset(src) {
+      const select = ['url', 'formats', 'width'];
+      const name = basename(src);
+      const where = { name };
+      const entity = await strapi.plugin('responsive-image').service('upload-file').getOne(where, select);
+      let srcset = '';
+      if (entity) {
+        const { cdn: { url: cdnUrl } } = strapi.config.get('plugin.upload');
+        const { formats, width, url } = entity;
+        srcset = `${url} ${width}w`;
+        Object.keys(formats).forEach(format => {
+          if (format !== 'thumbnail') {
+            let { width: fWidth, url: fUrl } = formats[format];
+            const parsed = new URL(fUrl);
+            if (parsed.origin !== cdnUrl) fUrl = getNewUrl(fUrl, cdnUrl);
+            srcset += `, ${fUrl} ${fWidth}w`;
+          }
+        });
+      }
+      return srcset;
+    },
+    imgAttrSizes() {
+      let { img: { attrs: { sizes } } } = strapi.config.get('plugin.upload');
+      if (!sizes) sizes = '100vw';
+      return `${sizes}`;
+    },
+    async cleanContentImageUrls(content, cdnUrl) {
+      const html = new JSDOM(content);
+      const imageElements = html.window.document.getElementsByTagName('img');
+      if (imageElements && imageElements.length) {
+        for (let x = 0; x < imageElements.length; x += 1) {
+          const element = imageElements[x];
+          const src = element.getAttribute('src');
+          // const attrsToKeep = ['src', 'srcset', 'alt', 'sizes', 'width'];
+          const newUrl = getNewUrl(src, cdnUrl);
+          element.setAttribute('src', newUrl);
+          // const srcset = await this.imgAttrSrcset(newUrl);
+          // element.setAttribute('srcset', srcset);
+          let origSrcset = element.getAttribute('srcset');
+          if (origSrcset) {
+            origSrcset = strapi.plugin('responsive-image').service('cdn').updateSrcSet(origSrcset, cdnUrl);
+            // const srcset = await this.imgAttrSrcset(newUrl);
+            // element.setAttribute('srcset', `${origSrcset}, ${srcset}`);
+            element.setAttribute('srcset', origSrcset);
+          }
+          // const sizes = this.imgAttrSizes();
+          // element.setAttribute('sizes', sizes);
+          // const attrs = element.getAttributeNames();
+          // attrs.forEach(attr => {
+          //   if (!attrsToKeep.includes(attr)) element.removeAttribute(attr);
+          // });
+        };
+        return html.window.document.documentElement.outerHTML;
+      }
     }
   };
 };
