@@ -1,6 +1,6 @@
 {
   "name": "@zam/strapi-plugin-responsive-image",
-  "version": "1.7.0",
+  "version": "1.8.0-beta.0",
   "description": "Custom responsive image formats for strapi.",
   "strapi": {
     "name": "responsive-image",
@@ -26,7 +26,7 @@
     "jsdom": "^21.1.0"
   },
   "peerDependencies": {
-    "@strapi/strapi": "^4.6.1"
+    "@strapi/strapi": "^4.15.0"
   },
   "author": {
     "name": "Nicolas Hamelin",
@@ -45,7 +45,7 @@
     "media"
   ],
   "engines": {
-    "node": ">=14.19.1 <=18.x.x",
+    "node": ">=18.0.0 <=20.x.x",
     "npm": ">=8.0.0"
   },
   "license": "MIT"
